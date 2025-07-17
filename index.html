@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Enough Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>The Enough Game</h1>
+        </div>
+
+        <div id="game-area">
+            <div class="game-stats">
+                <div class="stat-card">
+                    <h3>Money</h3>
+                    <div class="stat-value" id="money">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Needs Secured</h3>
+                    <div class="stat-value" id="needs-count">0/4</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Wants Acquired</h3>
+                    <div class="stat-value" id="wants-count">0</div>
+                </div>
+            </div>
+
+            <div class="income-section">
+                <button class="income-button" id="work-button">Work ($50)</button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="work-progress"></div>
+                </div>
+            </div>
+
+            <div id="message-area"></div>
+
+            <div class="cards-section">
+                <div class="card-category needs">
+                    <h3>Essential Needs</h3>
+                    <div id="needs-cards"></div>
+                </div>
+                <div class="card-category wants">
+                    <h3>Desires & Wants</h3>
+                    <div id="wants-cards"></div>
+                </div>
+            </div>
+
+            <div class="risks-section hidden" id="risks-section">
+                <h3>Take a Risk?</h3>
+                <button class="risk-button fair" id="fair-risk">Option A</button>
+                <button class="risk-button" id="unwise-risk">Option B</button>
+            </div>
+
+            <div class="actions">
+                <button class="action-button end-game" id="end-game">I Have Enough - End Game</button>
+                <button class="action-button" id="restart-game">Restart Game</button>
+            </div>
+        </div>
+
+        <div id="game-over" class="game-over hidden">
+            <h2 id="game-result"></h2>
+            <p id="game-feedback"></p>
+            <button class="action-button" id="play-again">Play Again</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
