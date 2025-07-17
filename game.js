@@ -99,10 +99,10 @@ function showMessage(text, type) {
     const messageArea = document.getElementById('message-area');
     messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
     
-    // Auto-hide message after 20 seconds
+    // Auto-hide message after 5 seconds
     setTimeout(() => {
         messageArea.innerHTML = '';
-    }, 20000);
+    }, 5000);
 }
 
 function updateWorkProgress() {
