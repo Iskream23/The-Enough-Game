@@ -109,10 +109,27 @@ function updateWorkProgress() {
     document.getElementById('work-progress').style.width = `${gameState.workProgress}%`;
 }
 
-// Placeholder functions for you to implement
 function work() {
-    // Implement work logic here
-    console.log('Work button clicked');
+    if (gameState.isWorking) return; // Prevent spamming
+    gameState.isWorking = true;
+    gameState.workProgress = 0;
+    updateWorkProgress();
+
+    const interval = setInterval(() => {
+        if (gameState.workProgress < 100) {
+            gameState.workProgress += 5;
+            updateWorkProgress();
+        }
+    }, 100);
+
+    setTimeout(() => {
+        clearInterval(interval);
+        gameState.money += 50;
+        gameState.workProgress = 0;
+        gameState.isWorking = false;
+        updateWorkProgress();
+        updateDisplay();
+    }, 2000);
 }
 
 function takeFairRisk() {
@@ -126,8 +143,24 @@ function takeUnwiseRisk() {
 }
 
 function buyCard(cardId, isNeed) {
-    // Implement buy card logic here
-    console.log('Buy card:', cardId, 'isNeed:', isNeed);
+    // Find the card in the appropriate array
+    const cardArray = isNeed ? needsCards : wantsCards;
+    const card = cardArray.find(c => c.id === cardId);
+
+    if (!card || card.owned || card.lost) return;
+    if (gameState.money < card.cost) return;
+
+    gameState.money -= card.cost;
+    card.owned = true;
+
+    // Optionally, reveal next want card if buying a want
+    if (!isNeed) {
+        const nextWant = wantsCards.find(c => !c.visible && !c.owned);
+        if (nextWant) nextWant.visible = true;
+    }
+
+    updateDisplay();
+    showMessage(`You bought: ${card.name}`, 'success');
 }
 
 function endGame() {
