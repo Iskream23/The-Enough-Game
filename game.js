@@ -39,7 +39,9 @@ let billAmount = 100;  // starting bill amount
 function initGame() {
     updateDisplay();
     attachEventListeners();
-    startBillTimer();
+
+    //startBillTimer();
+    
     showMessage('Welcome! Start by securing your essential needs through steady work.', 'info');
 
     // Start play timer
@@ -319,7 +321,7 @@ function restartGame() {
     });
 
     // Reset billing
-    startBillTimer();
+    //startBillTimer();
     
     // Show game area, hide game over
     document.getElementById('game-area').classList.remove('hidden');
