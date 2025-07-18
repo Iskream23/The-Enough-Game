@@ -22,7 +22,7 @@ const wantsCards = [
     // Add more wants cards as needed
 ];
 
-let unwiseRiskChance = 0.8;
+let unwiseRiskChance = 0.5;
 let waitBeforeShowingRisks;
 let risksWaitingTime = 30000;
 
@@ -104,7 +104,7 @@ function createCardElement(card, isNeed) {
         <div class="card-name">${card.name}</div>
         <div class="card-cost">Cost: $${card.cost}</div>
         ${!card.owned && !card.lost ? `<button class="buy-button" ${gameState.money < card.cost ? 'disabled' : ''}>Buy</button>` : ''}
-        ${card.owned ? '<span style="color: #28a745;">✓ Owned</span>' : ''}
+        ${card.owned && !card.lost ? '<span style="color: #28a745;">✓ Owned</span>' : ''}
         ${card.lost ? '<span style="color: #dc3545;">✗ Lost</span>' : ''}
     `;
 
@@ -219,7 +219,7 @@ function takeUnwiseRisk() {
     updateDisplay();
 
     // Diminish the chance each time, but don't go below 0.2
-    unwiseRiskChance = Math.max(0.2, unwiseRiskChance - 0.1);
+    unwiseRiskChance = Math.max(0.2, unwiseRiskChance - 0.05);
 }
 
 function buyCard(cardId, isNeed) {
