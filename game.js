@@ -22,11 +22,21 @@ const wantsCards = [
     // Add more wants cards as needed
 ];
 
+let waitBeforeShowingRisks;
+let showRisksWaitingTime = 30000;
+
 // Initialize the game
 function initGame() {
     updateDisplay();
     attachEventListeners();
     showMessage('Welcome! Start by securing your essential needs through steady work.', 'info');
+
+    // Start play timer
+    if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
+    waitBeforeShowingRisks = setTimeout(() => {
+        // Show the risks section
+        document.getElementById('risks-section').classList.remove('hidden');
+    }, showRisksWaitingTime);
 }
 
 // Event listeners
@@ -177,6 +187,13 @@ function restartGame() {
         workProgress: 0,
         gameEnded: false,
     };
+
+    // Reset play timer
+    if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
+    waitBeforeShowingRisks = setTimeout(() => {
+        // Show the risks section again
+        document.getElementById('risks-section').classList.remove('hidden');
+    }, showRisksWaitingTime);
     
     // Reset card states
     needsCards.forEach(card => {
