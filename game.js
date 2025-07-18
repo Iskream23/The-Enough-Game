@@ -4,22 +4,31 @@ let gameState = {
     isWorking: false,
     workProgress: 0,
     gameEnded: false,
-    // Add your game state variables here
+    unwiseRiskSuccesses: 0, // Track successful unwise risks
+    totalUnwiseRisks: 0, // Track total unwise risks taken
 };
 
 // Sample card data structure
 const needsCards = [
-    { id: 'apartment', name: 'Rented Apartment', cost: 200, owned: false, lost: false },
-    { id: 'car', name: 'Reliable Car', cost: 400, owned: false, lost: false },
-    { id: 'food', name: 'Stable Food Supply', cost: 150, owned: false, lost: false },
-    { id: 'healthcare', name: 'Basic Healthcare', cost: 300, owned: false, lost: false }
+    { id: 'food', name: 'Basic Food Supply', cost: 500, owned: false, lost: false },
+    { id: 'apartment', name: 'Rented Apartment', cost: 800, owned: false, lost: false },
+    { id: 'healthcare', name: 'Health Insurance', cost: 600, owned: false, lost: false },
+    { id: 'car', name: 'Reliable Used Car', cost: 1200, owned: false, lost: false },
+    { id: 'emergency', name: 'Emergency Fund', cost: 1000, owned: false, lost: false },
+    { id: 'clothes', name: 'Work Clothes', cost: 400, owned: false, lost: false }
 ];
 
 const wantsCards = [
-    { id: 'luxury-car', name: 'Luxury Car', cost: 800, owned: false, visible: false },
-    { id: 'vacation-home', name: 'Vacation Home', cost: 1200, owned: false, visible: false },
-    { id: 'designer-clothes', name: 'Designer Wardrobe', cost: 600, owned: false, visible: true },
-    // Add more wants cards as needed
+    { id: 'phone', name: 'Smartphone Upgrade', cost: 1000, owned: false, visible: true },
+    { id: 'gym', name: 'Gym Membership', cost: 1500, owned: false, visible: true },
+    { id: 'dining', name: 'Dining Out Budget', cost: 2000, owned: false, visible: true },
+    { id: 'gaming', name: 'New Gaming Console', cost: 3000, owned: false, visible: false },
+    { id: 'designer', name: 'Designer Wardrobe', cost: 5000, owned: false, visible: false },
+    { id: 'luxury-car', name: 'Luxury Car', cost: 15000, owned: false, visible: false },
+    { id: 'vacation', name: 'Dream Vacation', cost: 25000, owned: false, visible: false },
+    { id: 'boat', name: 'Boat', cost: 50000, owned: false, visible: false },
+    { id: 'vacation-home', name: 'Vacation Home', cost: 100000, owned: false, visible: false },
+    { id: 'jet', name: 'Private Jet', cost: 500000, owned: false, visible: false },
 ];
 
 // Risk variables
@@ -32,15 +41,15 @@ const unwiseRiskBtn = document.getElementById('unwise-risk');
 
 // Billing variables
 let billInterval;
-let billTimeLeft = 30; // seconds
-let billAmount = 100;  // starting bill amount
+let billTime = 120; // seconds
+let billAmount = 500;  // starting bill amount
 
 // Initialize the game
 function initGame() {
     updateDisplay();
     attachEventListeners();
 
-    //startBillTimer();
+    startBillTimer();
     
     showMessage('Welcome! Start by securing your essential needs through steady work.', 'info');
 
@@ -70,11 +79,15 @@ function updateDisplay() {
     
     // Update needs count
     const ownedNeeds = needsCards.filter(card => card.owned && !card.lost).length;
-    document.getElementById('needs-count').textContent = `${ownedNeeds}/${needsCards.length}`;
+    const totalNeeds = needsCards.length;
+    document.getElementById('needs-count').textContent = `${ownedNeeds}/${totalNeeds}`;
     
     // Update wants count
     const ownedWants = wantsCards.filter(card => card.owned).length;
     document.getElementById('wants-count').textContent = ownedWants;
+
+    // Check if should enable unwise risk
+    checkUnwiseRiskAvailability();
     
     // Render cards
     renderCards();
@@ -99,7 +112,17 @@ function renderWantsCards() {
     const container = document.getElementById('wants-cards');
     container.innerHTML = '';
     
-    wantsCards.filter(card => card.visible).forEach(card => {
+    /*wantsCards.filter(card => card.visible).forEach(card => {
+        const cardElement = createCardElement(card, false);
+        container.appendChild(cardElement);
+    });*/
+
+    // Show first 3 wants always, then reveal others as previous ones are bought
+    let visibleCount = 3;
+    const ownedCount = wantsCards.filter(card => card.owned).length;
+    visibleCount = Math.min(visibleCount + ownedCount, wantsCards.length);
+    
+    wantsCards.slice(0, visibleCount).forEach(card => {
         const cardElement = createCardElement(card, false);
         container.appendChild(cardElement);
     });
@@ -130,11 +153,30 @@ function createCardElement(card, isNeed) {
 
 function showMessage(text, type) {
     const messageArea = document.getElementById('message-area');
-    messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+    
+    // Create message with appropriate styling
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}`;
+    messageDiv.textContent = text;
+    
+    // Add to message area
+    messageArea.appendChild(messageDiv);
+    
+    // Remove old messages if too many
+    while (messageArea.children.length > 3) {
+        messageArea.removeChild(messageArea.firstChild);
+    }
     
     // Auto-hide message after 5 seconds
     setTimeout(() => {
-        messageArea.innerHTML = '';
+        if (messageArea.contains(messageDiv)) {
+            messageDiv.style.opacity = '0';
+            setTimeout(() => {
+                if (messageArea.contains(messageDiv)) {
+                    messageArea.removeChild(messageDiv);
+                }
+            }, 500);
+        }
     }, 5000);
 }
 
@@ -157,7 +199,7 @@ function work() {
 
     setTimeout(() => {
         clearInterval(interval);
-        gameState.money += 50;
+        gameState.money += 100;
         gameState.workProgress = 0;
         gameState.isWorking = false;
         updateWorkProgress();
@@ -168,23 +210,33 @@ function work() {
 function takeFairRisk() {
     if (gameState.gameEnded) return;
 
-    // Disable the fair risk button for 30 seconds
+    const riskCost = 500;
+    if (gameState.money < riskCost) {
+        showMessage('Not enough money to take this risk! You need $500.', 'error');
+        return;
+    }
+
+    // Deduct the cost upfront
+    gameState.money -= riskCost;
+
+    // Disable both risk buttons temporarily
     fairRiskBtn.disabled = true;
-    if (!unwiseRiskBtn.disabled)
-        unwiseRiskBtn.disabled = true;
+    unwiseRiskBtn.disabled = true;
+
     setTimeout(() => {
         fairRiskBtn.disabled = false;
-        if (unwiseRiskBtn.disabled)
-            unwiseRiskBtn.disabled = false;
-    }, risksWaitingTime);
+        // Only re-enable unwise risk if conditions allow
+        checkUnwiseRiskAvailability();
+    }, 5000);
 
     const chance = Math.random();
-    if (chance < 0.7) {
-        gameState.money += 200;
-        showMessage('Success! You earned $200 from a fair risk.', 'success');
+
+    if (chance < 0.6) {
+        const payout = 1500; // 3x return
+        gameState.money += payout;
+        showMessage(`Success! You earned $${payout} from a calculated risk.`, 'success');
     } else {
-        gameState.money = Math.max(0, gameState.money - 50);
-        showMessage('Unlucky! You lost $50 from a fair risk.', 'error');
+        showMessage('The risk didn\'t pay off. You lost your $500 stake.', 'error');
     }
     updateDisplay();
 }
@@ -192,43 +244,96 @@ function takeFairRisk() {
 function takeUnwiseRisk() {
     if (gameState.gameEnded) return;
 
-    // Disable the unwise risk button for 1 minute
+    const riskCost = 1000;
+    if (gameState.money < riskCost) {
+        showMessage('Not enough money to take this risk! You need $1000.', 'error');
+        return;
+    }
+
+    // Deduct the cost upfront
+    gameState.money -= riskCost;
+    gameState.totalUnwiseRisks++;
+
+    // Disable both risk buttons temporarily
     unwiseRiskBtn.disabled = true;
     fairRiskBtn.disabled = true;
+
     setTimeout(() => {
-        unwiseRiskBtn.disabled = false;
-        if (fairRiskBtn.disabled)
-            fairRiskBtn.disabled = false;
-    }, risksWaitingTime); // 1 minute
+        fairRiskBtn.disabled = false;
+        // Only re-enable unwise risk if conditions allow
+        checkUnwiseRiskAvailability();
+    }, 10000);
 
     const chance = Math.random();
-    if (chance < unwiseRiskChance) {
-        gameState.money += 2000;
-        showMessage('Success! You earned $2000 from a fair risk.', 'success');
+    const currentChance = Math.max(0.1, unwiseRiskChance - (gameState.unwiseRiskSuccesses * 0.1));
+
+    if (chance < currentChance) {
+        const payout = 10000; // 10x return
+        gameState.money += payout;
+        gameState.unwiseRiskSuccesses++;
+        showMessage(`Lucky! You earned $${payout} from a risky bet. (Success rate was ${Math.round(currentChance * 100)}%)`, 'success');
+        
+        // Make next risk harder
+        unwiseRiskChance = Math.max(0.1, unwiseRiskChance - 0.1);
     } else {
-        // Randomly choose penalty: lose money or lose a Wants card
-        if (Math.random() < 0.5 || wantsCards.filter(c => c.owned && !c.lost).length === 0) {
-            // Lose money
-            gameState.money = Math.max(0, gameState.money - 500);
-            showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
+        handleUnwiseRiskFailure();
+    }
+
+    updateDisplay();
+}
+
+function handleUnwiseRiskFailure() {
+    const failureCount = gameState.totalUnwiseRisks - gameState.unwiseRiskSuccesses;
+    
+    if (failureCount === 1) {
+        // First failure: lose $2000 total (already lost $1000)
+        const additionalLoss = 1000;
+        gameState.money = Math.max(0, gameState.money - additionalLoss);
+        showMessage(`Bad luck! You lost an additional $${additionalLoss}.`, 'error');
+    } else if (failureCount === 2) {
+        // Second failure: lose $5000 + one want card
+        const additionalLoss = 4000;
+        gameState.money = Math.max(0, gameState.money - additionalLoss);
+        
+        const ownedWants = wantsCards.filter(c => c.owned && !c.lost);
+        if (ownedWants.length > 0) {
+            const lostCard = ownedWants[Math.floor(Math.random() * ownedWants.length)];
+            lostCard.lost = true;
+            showMessage(`Disaster! You lost $${additionalLoss} AND your "${lostCard.name}"!`, 'error');
         } else {
-            // Lose a random owned Wants card
-            const ownedWants = wantsCards.filter(c => c.owned && !c.lost);
-            if (ownedWants.length > 0) {
-                const lostCard = ownedWants[Math.floor(Math.random() * ownedWants.length)];
-                lostCard.lost = true;
-                showMessage(`Unlucky! You lost your "${lostCard.name}" from a fair risk.`, 'error');
-            } else {
-                // Fallback to losing money if no wants owned
-                gameState.money = Math.max(0, gameState.money - 500);
-                showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
-            }
+            showMessage(`Major loss! You lost $${additionalLoss}.`, 'error');
+        }
+    } else {
+        // Third+ failure: lose $10000 + one need card (potential game over)
+        const additionalLoss = 9000;
+        gameState.money = Math.max(0, gameState.money - additionalLoss);
+        
+        const ownedNeeds = needsCards.filter(c => c.owned && !c.lost);
+        if (ownedNeeds.length > 0) {
+            const lostCard = ownedNeeds[Math.floor(Math.random() * ownedNeeds.length)];
+            lostCard.lost = true;
+            showMessage(`CATASTROPHE! You lost $${additionalLoss} AND your "${lostCard.name}"!`, 'error');
+            
+            // Check for game over
+            setTimeout(() => {
+                checkGameOver();
+            }, 2000);
+        } else {
+            showMessage(`Massive loss! You lost $${additionalLoss}.`, 'error');
         }
     }
-    updateDisplay();
+}
 
-    // Diminish the chance each time, but don't go below 0.2
-    unwiseRiskChance = Math.max(0.2, unwiseRiskChance - 0.05);
+function checkUnwiseRiskAvailability() {
+    // Only enable unwise risk if player has all needs cards
+    const hasAllNeeds = needsCards.every(card => card.owned && !card.lost);
+    unwiseRiskBtn.disabled = !hasAllNeeds;
+    
+    if (!hasAllNeeds && !unwiseRiskBtn.disabled) {
+        unwiseRiskBtn.title = "Secure all your needs first!";
+    } else {
+        unwiseRiskBtn.title = "";
+    }
 }
 
 function buyCard(cardId, isNeed) {
@@ -253,7 +358,7 @@ function buyCard(cardId, isNeed) {
 }
 
 function startBillTimer() {
-    billTimeLeft = 30;
+    billTimeLeft = billTime;
     updateBillTimerDisplay();
 
     if (billInterval) clearInterval(billInterval);
@@ -263,14 +368,15 @@ function startBillTimer() {
 
         if (billTimeLeft <= 0) {
             payBill();
-            billTimeLeft = 30;
+            billTimeLeft = billTime;
             updateBillTimerDisplay();
         }
     }, 1000);
 }
 
 function updateBillTimerDisplay() {
-    document.getElementById('bill-timer').textContent = `${billTimeLeft}s`;
+    const timerElement = document.getElementById('bill-timer');
+    timerElement.textContent = `${billTimeLeft}`;
     document.getElementById('bill-amount').textContent = `$${billAmount}`;
 }
 
@@ -278,37 +384,86 @@ function payBill() {
     if (gameState.money >= billAmount) {
         gameState.money -= billAmount;
         showMessage(`Paid bills: $${billAmount}`, 'info');
+
+        // Increase bills slightly over time
+        billAmount = Math.min(1000, billAmount + 50); // Cap at USD 1000
     } else {
-        showMessage(`Not enough money to pay bills!`, 'danger');
-        gameState.money = 0;
+        // Try to lose a want card first
+        const ownedWants = wantsCards.filter(card => card.owned && !card.lost);
+        if (ownedWants.length > 0) {
+            const lostCard = ownedWants[0]; // Lose the first owned want
+            lostCard.lost = true;
+            showMessage(`Couldn't pay bills! Lost your want "${lostCard.name}" due to financial hardship!`, 'error');
+            gameState.money = 0;
+        } else if (gameState.money > 0) {
+            // Lose all money if less than bill and no want card
+            showMessage(`Couldn't pay bills! Lost all your remaining money ($${gameState.money}).`, 'error');
+            gameState.money = 0;
+        } else {
+            // Lose a need card if no money and no want card
+            const ownedNeeds = needsCards.filter(card => card.owned && !card.lost);
+            if (ownedNeeds.length > 0) {
+                const lostCard = ownedNeeds[0]; // Lose the first owned need
+                lostCard.lost = true;
+                showMessage(`Couldn't pay bills! Lost "${lostCard.name}" due to financial hardship!`, 'error');
+                gameState.money = 0;
+
+                // Check for game over
+                setTimeout(() => {
+                    checkGameOver();
+                }, 2000);
+            } else {
+                showMessage(`Couldn't pay bills! You're in financial trouble!`, 'error');
+                gameState.money = 0;
+            }
+        }
     }
     updateDisplay();
 }
 
+function checkGameOver() {
+    const lostNeed = needsCards.some(card => card.lost);
+    if (lostNeed) {
+        gameState.gameEnded = true;
+        clearInterval(billInterval);
+        
+        document.getElementById('game-area').classList.add('hidden');
+        document.getElementById('game-over').classList.remove('hidden');
+        
+        // Update game over message
+        const gameOverMsg = document.querySelector('#game-over h2');
+        gameOverMsg.textContent = 'Game Over - You Lost What You Needed';
+        
+        const gameOverDetails = document.querySelector('#game-over p');
+        gameOverDetails.textContent = 'You risked what you had and needed for what you didn\'t have and didn\'t need. The lesson: never gamble with necessities.';
+    }
+}
+
 function endGame() {
-    // Implement end game logic here
-    console.log('End game button clicked');
+    // Show first 3 wants always, then reveal others as previous ones are bought
+    let visibleCount = 3;
+    const ownedCount = wantsCards.filter(card => card.owned).length;
+    visibleCount = Math.min(visibleCount + ownedCount, wantsCards.length);
+    
+    wantsCards.slice(0, visibleCount).forEach(card => {
+        const cardElement = createCardElement(card, false);
+        container.appendChild(cardElement);
+    });
 }
 
 function restartGame() {
-    // Implement restart logic here
-    console.log('Restart game button clicked');
     gameState = {
         money: 0,
         isWorking: false,
         workProgress: 0,
         gameEnded: false,
+        unwiseRiskSuccesses: 0,
+        totalUnwiseRisks: 0,
     };
 
-    // Reset play timer
-    if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
-    waitBeforeShowingRisks = setTimeout(() => {
-        // Show the risks section again
-        document.getElementById('risks-section').classList.remove('hidden');
-        // Disable the unwise risk button initially
-        unwiseRiskBtn.disabled = true;
-    }, risksWaitingTime);
-    
+    // Reset risk chance
+    unwiseRiskChance = 0.5;
+
     // Reset card states
     needsCards.forEach(card => {
         card.owned = false;
@@ -317,18 +472,31 @@ function restartGame() {
     
     wantsCards.forEach(card => {
         card.owned = false;
-        card.visible = card.id === 'designer-clothes'; // Only first want visible initially
+        card.lost = false;
     });
 
     // Reset billing
-    //startBillTimer();
-    
+    billTimeLeft = billTime;
+    startBillTimer();
+
     // Show game area, hide game over
     document.getElementById('game-area').classList.remove('hidden');
     document.getElementById('game-over').classList.add('hidden');
     document.getElementById('risks-section').classList.add('hidden');
+
+    // Reset risk buttons
+    fairRiskBtn.disabled = false;
+    unwiseRiskBtn.disabled = true;
+
+    // Reset the timer for showing risks
+    if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
+    waitBeforeShowingRisks = setTimeout(() => {
+        document.getElementById('risks-section').classList.remove('hidden');
+        showMessage('Risk options are now available. Be careful!', 'warning');
+    }, risksWaitingTime);
     
     updateDisplay();
+    showMessage('Welcome back! Start by securing your essential needs through steady work.', 'info');
 }
 
 // Start the game when page loads
