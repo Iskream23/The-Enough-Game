@@ -235,6 +235,8 @@ function restartGame() {
     waitBeforeShowingRisks = setTimeout(() => {
         // Show the risks section again
         document.getElementById('risks-section').classList.remove('hidden');
+        // Disable the unwise risk button initially
+        unwiseRiskBtn.disabled = true;
     }, risksWaitingTime);
     
     // Reset card states
