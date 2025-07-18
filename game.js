@@ -99,15 +99,23 @@ function renderWantsCards() {
 function createCardElement(card, isNeed) {
     const cardDiv = document.createElement('div');
     cardDiv.className = `card ${card.owned ? 'owned' : ''} ${card.lost ? 'lost' : ''}`;
-    
+
     cardDiv.innerHTML = `
         <div class="card-name">${card.name}</div>
         <div class="card-cost">Cost: $${card.cost}</div>
-        ${!card.owned && !card.lost ? `<button class="buy-button" onclick="buyCard('${card.id}', ${isNeed})" ${gameState.money < card.cost ? 'disabled' : ''}>Buy</button>` : ''}
+        ${!card.owned && !card.lost ? `<button class="buy-button" ${gameState.money < card.cost ? 'disabled' : ''}>Buy</button>` : ''}
         ${card.owned ? '<span style="color: #28a745;">✓ Owned</span>' : ''}
         ${card.lost ? '<span style="color: #dc3545;">✗ Lost</span>' : ''}
     `;
-    
+
+    // Attach event listener to Buy button
+    if (!card.owned && !card.lost) {
+        const buyBtn = cardDiv.querySelector('.buy-button');
+        if (buyBtn) {
+            buyBtn.addEventListener('click', () => buyCard(card.id, isNeed));
+        }
+    }
+
     return cardDiv;
 }
 
