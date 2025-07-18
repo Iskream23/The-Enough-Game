@@ -22,6 +22,7 @@ const wantsCards = [
     // Add more wants cards as needed
 ];
 
+let unwiseRiskChance = 0.8;
 let waitBeforeShowingRisks;
 let risksWaitingTime = 30000;
 
@@ -184,14 +185,33 @@ function takeUnwiseRisk() {
     }, risksWaitingTime); // 1 minute
 
     const chance = Math.random();
-    if (chance < 0.7) {
+    if (chance < unwiseRiskChance) {
         gameState.money += 2000;
         showMessage('Success! You earned $2000 from a fair risk.', 'success');
     } else {
-        gameState.money = Math.max(0, gameState.money - 500);
-        showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
+        // Randomly choose penalty: lose money or lose a Wants card
+        if (Math.random() < 0.5 || wantsCards.filter(c => c.owned && !c.lost).length === 0) {
+            // Lose money
+            gameState.money = Math.max(0, gameState.money - 500);
+            showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
+        } else {
+            // Lose a random owned Wants card
+            const ownedWants = wantsCards.filter(c => c.owned && !c.lost);
+            if (ownedWants.length > 0) {
+                const lostCard = ownedWants[Math.floor(Math.random() * ownedWants.length)];
+                lostCard.lost = true;
+                showMessage(`Unlucky! You lost your "${lostCard.name}" from a fair risk.`, 'error');
+            } else {
+                // Fallback to losing money if no wants owned
+                gameState.money = Math.max(0, gameState.money - 500);
+                showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
+            }
+        }
     }
     updateDisplay();
+
+    // Diminish the chance each time, but don't go below 0.2
+    unwiseRiskChance = Math.max(0.2, unwiseRiskChance - 0.1);
 }
 
 function buyCard(cardId, isNeed) {
