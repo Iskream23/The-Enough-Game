@@ -46,6 +46,19 @@ body {
     min-width: 150px;
 }
 
+.stat-card.bill-box {
+    background-color: #ffd6d6;
+}
+
+.stat-card.bill-box .stat-value {
+    font-size: 16px;
+    color: #333;
+}
+
+.stat-card.bill-box #bill-amount {
+    color: #dc3545;
+}
+
 .stat-card h3 {
     color: #666;
     margin-bottom: 10px;

@@ -22,6 +22,7 @@ const wantsCards = [
     // Add more wants cards as needed
 ];
 
+// Risk variables
 let unwiseRiskChance = 0.5;
 let waitBeforeShowingRisks;
 let risksWaitingTime = 30000;
@@ -29,10 +30,16 @@ let risksWaitingTime = 30000;
 const fairRiskBtn = document.getElementById('fair-risk');
 const unwiseRiskBtn = document.getElementById('unwise-risk');
 
+// Billing variables
+let billInterval;
+let billTimeLeft = 30; // seconds
+let billAmount = 100;  // starting bill amount
+
 // Initialize the game
 function initGame() {
     updateDisplay();
     attachEventListeners();
+    startBillTimer();
     showMessage('Welcome! Start by securing your essential needs through steady work.', 'info');
 
     // Start play timer
@@ -243,6 +250,39 @@ function buyCard(cardId, isNeed) {
     showMessage(`You bought: ${card.name}`, 'success');
 }
 
+function startBillTimer() {
+    billTimeLeft = 30;
+    updateBillTimerDisplay();
+
+    if (billInterval) clearInterval(billInterval);
+    billInterval = setInterval(() => {
+        billTimeLeft--;
+        updateBillTimerDisplay();
+
+        if (billTimeLeft <= 0) {
+            payBill();
+            billTimeLeft = 30;
+            updateBillTimerDisplay();
+        }
+    }, 1000);
+}
+
+function updateBillTimerDisplay() {
+    document.getElementById('bill-timer').textContent = `${billTimeLeft}s`;
+    document.getElementById('bill-amount').textContent = `$${billAmount}`;
+}
+
+function payBill() {
+    if (gameState.money >= billAmount) {
+        gameState.money -= billAmount;
+        showMessage(`Paid bills: $${billAmount}`, 'info');
+    } else {
+        showMessage(`Not enough money to pay bills!`, 'danger');
+        gameState.money = 0;
+    }
+    updateDisplay();
+}
+
 function endGame() {
     // Implement end game logic here
     console.log('End game button clicked');
@@ -277,6 +317,9 @@ function restartGame() {
         card.owned = false;
         card.visible = card.id === 'designer-clothes'; // Only first want visible initially
     });
+
+    // Reset billing
+    startBillTimer();
     
     // Show game area, hide game over
     document.getElementById('game-area').classList.remove('hidden');
