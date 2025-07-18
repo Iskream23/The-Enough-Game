@@ -23,7 +23,10 @@ const wantsCards = [
 ];
 
 let waitBeforeShowingRisks;
-let showRisksWaitingTime = 30000;
+let risksWaitingTime = 30000;
+
+const fairRiskBtn = document.getElementById('fair-risk');
+const unwiseRiskBtn = document.getElementById('unwise-risk');
 
 // Initialize the game
 function initGame() {
@@ -36,7 +39,9 @@ function initGame() {
     waitBeforeShowingRisks = setTimeout(() => {
         // Show the risks section
         document.getElementById('risks-section').classList.remove('hidden');
-    }, showRisksWaitingTime);
+        // Disable the unwise risk button initially
+        unwiseRiskBtn.disabled = true;
+    }, risksWaitingTime);
 }
 
 // Event listeners
@@ -143,13 +148,50 @@ function work() {
 }
 
 function takeFairRisk() {
-    // Implement fair risk logic here
-    console.log('Fair risk button clicked');
+    if (gameState.gameEnded) return;
+
+    // Disable the fair risk button for 30 seconds
+    fairRiskBtn.disabled = true;
+    if (!unwiseRiskBtn.disabled)
+        unwiseRiskBtn.disabled = true;
+    setTimeout(() => {
+        fairRiskBtn.disabled = false;
+        if (unwiseRiskBtn.disabled)
+            unwiseRiskBtn.disabled = false;
+    }, risksWaitingTime);
+
+    const chance = Math.random();
+    if (chance < 0.7) {
+        gameState.money += 200;
+        showMessage('Success! You earned $200 from a fair risk.', 'success');
+    } else {
+        gameState.money = Math.max(0, gameState.money - 50);
+        showMessage('Unlucky! You lost $50 from a fair risk.', 'error');
+    }
+    updateDisplay();
 }
 
 function takeUnwiseRisk() {
-    // Implement unwise risk logic here
-    console.log('Unwise risk button clicked');
+    if (gameState.gameEnded) return;
+
+    // Disable the unwise risk button for 1 minute
+    unwiseRiskBtn.disabled = true;
+    fairRiskBtn.disabled = true;
+    setTimeout(() => {
+        unwiseRiskBtn.disabled = false;
+        if (fairRiskBtn.disabled)
+            fairRiskBtn.disabled = false;
+    }, risksWaitingTime); // 1 minute
+
+    const chance = Math.random();
+    if (chance < 0.7) {
+        gameState.money += 2000;
+        showMessage('Success! You earned $2000 from a fair risk.', 'success');
+    } else {
+        gameState.money = Math.max(0, gameState.money - 500);
+        showMessage('Unlucky! You lost $500 from a fair risk.', 'error');
+    }
+    updateDisplay();
 }
 
 function buyCard(cardId, isNeed) {
@@ -193,7 +235,7 @@ function restartGame() {
     waitBeforeShowingRisks = setTimeout(() => {
         // Show the risks section again
         document.getElementById('risks-section').classList.remove('hidden');
-    }, showRisksWaitingTime);
+    }, risksWaitingTime);
     
     // Reset card states
     needsCards.forEach(card => {
