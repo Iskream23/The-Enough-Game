@@ -384,39 +384,12 @@ function payBill() {
     if (gameState.money >= billAmount) {
         gameState.money -= billAmount;
         showMessage(`Paid bills: $${billAmount}`, 'info');
-
-        // Increase bills slightly over time
-        billAmount = Math.min(1000, billAmount + 50); // Cap at USD 1000
+        //billAmount = Math.min(1000, billAmount + 50); // Cap at USD 1000
     } else {
-        // Try to lose a want card first
-        const ownedWants = wantsCards.filter(card => card.owned && !card.lost);
-        if (ownedWants.length > 0) {
-            const lostCard = ownedWants[0]; // Lose the first owned want
-            lostCard.lost = true;
-            showMessage(`Couldn't pay bills! Lost your want "${lostCard.name}" due to financial hardship!`, 'error');
-            gameState.money = 0;
-        } else if (gameState.money > 0) {
-            // Lose all money if less than bill and no want card
-            showMessage(`Couldn't pay bills! Lost all your remaining money ($${gameState.money}).`, 'error');
-            gameState.money = 0;
-        } else {
-            // Lose a need card if no money and no want card
-            const ownedNeeds = needsCards.filter(card => card.owned && !card.lost);
-            if (ownedNeeds.length > 0) {
-                const lostCard = ownedNeeds[0]; // Lose the first owned need
-                lostCard.lost = true;
-                showMessage(`Couldn't pay bills! Lost "${lostCard.name}" due to financial hardship!`, 'error');
-                gameState.money = 0;
-
-                // Check for game over
-                setTimeout(() => {
-                    checkGameOver();
-                }, 2000);
-            } else {
-                showMessage(`Couldn't pay bills! You're in financial trouble!`, 'error');
-                gameState.money = 0;
-            }
-        }
+        // Not enough money: take all remaining money and apply late penalty
+        showMessage(`Couldn't pay full bills! Late payment penalty applied. (10%)`, 'error');
+        gameState.money = 0;
+        billAmount = Math.min(1000, Math.ceil(billAmount * 1.1)); // Increase by 10%, cap at 1000
     }
     updateDisplay();
 }
