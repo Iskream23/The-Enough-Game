@@ -12,6 +12,8 @@
             <h1>The Enough Game</h1>
         </div>
 
+        <div id="message-area"></div>
+
         <div id="game-area">
             <div class="game-stats">
                 <div class="stat-card">
@@ -23,14 +25,18 @@
                     <div class="stat-value">
                         <div>Next bill in: <span id="bill-timer">30s</span></div>
                         <div>Bills Amount: <span id="bill-amount">$100</span></div>
+                        <!--
+                        <div class="bills-progress-bar">
+                            <div class="bills-progress-fill" id="bills-progress"></div>
+                        </div>-->
                     </div>
                 </div>
                 <div class="stat-card">
-                    <h3>Needs Secured</h3>
+                    <h3>Needs</h3>
                     <div class="stat-value" id="needs-count">0/4</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Wants Acquired</h3>
+                    <h3>Goals</h3>
                     <div class="stat-value" id="wants-count">0</div>
                 </div>
             </div>
@@ -43,12 +49,10 @@
             </div>
 
             <div class="risks-section hidden" id="risks-section">
-                <h3>Take a Risk?</h3>
-                <button class="risk-button fair" id="fair-risk">Option A</button>
-                <button class="risk-button" id="unwise-risk">Option B</button>
+                <h3>Invest your money?</h3>
+                <button class="risk-button fair" id="fair-risk">💵<br>($500)</button>
+                <button class="risk-button" id="unwise-risk">💵💵💵<br>($1000)</button>
             </div>
-
-            <div id="message-area"></div>
 
             <div class="cards-section">
                 <div class="card-category needs">
@@ -73,7 +77,6 @@
             <button class="action-button" id="play-again">Play Again</button>
         </div>
     </div>
-
     <script src="game.js"></script>
 </body>
 </html>

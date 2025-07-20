@@ -98,7 +98,7 @@ body {
 
 .progress-bar {
     width: 200px;
-    height: 20px;
+    height: 10px;
     background: #e0e0e0;
     border-radius: 10px;
     overflow: hidden;
@@ -108,6 +108,22 @@ body {
 .progress-fill {
     height: 100%;
     background: #4CAF50;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.bills-progress-bar {
+    width: 100%;
+    height: 10px;
+    background: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px auto;
+}
+
+.bills-progress-fill {
+    height: 100%;
+    background: #ff6b6b;
     width: 0%;
     transition: width 0.3s ease;
 }
