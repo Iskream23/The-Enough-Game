@@ -3,6 +3,7 @@ let gameState = {
     money: 0,
     isWorking: false,
     workProgress: 0,
+    billingProgress: 0,
     gameEnded: false,
     unwiseRiskSuccesses: 0, // Track successful unwise risks
     totalUnwiseRisks: 0, // Track total unwise risks taken
@@ -51,9 +52,9 @@ function initGame() {
 
     startBillTimer();
     
-    showMessage('Welcome! Start by securing your essential needs through steady work.', 'info');
+    showMessage('Welcome! Start by securing your essential needs.', 'info');
 
-    // Start play timer
+    // Wait before showing risks section
     if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
     waitBeforeShowingRisks = setTimeout(() => {
         // Show the risks section
@@ -84,7 +85,8 @@ function updateDisplay() {
     
     // Update wants count
     const ownedWants = wantsCards.filter(card => card.owned).length;
-    document.getElementById('wants-count').textContent = ownedWants;
+    const totalWants = wantsCards.length;
+    document.getElementById('wants-count').textContent = `${ownedWants}/${totalWants}`;
 
     // Check if should enable unwise risk
     checkUnwiseRiskAvailability();
@@ -168,7 +170,7 @@ function showMessage(text, type) {
     }
     
     // Auto-hide message after 5 seconds
-    setTimeout(() => {
+    /*setTimeout(() => {
         if (messageArea.contains(messageDiv)) {
             messageDiv.style.opacity = '0';
             setTimeout(() => {
@@ -177,11 +179,25 @@ function showMessage(text, type) {
                 }
             }, 500);
         }
-    }, 5000);
+    }, 5000);*/
 }
 
 function updateWorkProgress() {
-    document.getElementById('work-progress').style.width = `${gameState.workProgress}%`;
+    const progressBar = document.getElementById('work-progress');
+    progressBar.style.width = `${gameState.workProgress}%`;
+}
+
+function updateBillingProgress() {
+    // Calculate billing progress as percentage of billTimeLeft
+    if (typeof billTimeLeft !== 'undefined' && billTime > 0) {
+        gameState.billingProgress = Math.round((billTimeLeft / billTime) * 100);
+    } else {
+        gameState.billingProgress = 0;
+    }
+
+    // Update the progress bar width
+    const progressBar = document.getElementById('bills-progress');
+    progressBar.style.width = `${gameState.billingProgress}%`;
 }
 
 function work() {
@@ -207,12 +223,50 @@ function work() {
     }, 2000);
 }
 
+function startBillTimer() {
+    billTimeLeft = billTime;
+    updateBillAmountDisplay();
+    updateBillingProgress();
+
+    if (billInterval) clearInterval(billInterval);
+    billInterval = setInterval(() => {
+        billTimeLeft--;
+        updateBillAmountDisplay();
+        updateBillingProgress();
+
+        if (billTimeLeft <= 0) {
+            payBill();
+            billTimeLeft = billTime;
+            updateBillAmountDisplay();
+            updateBillingProgress();
+        }
+    }, 1000);
+}
+
+function updateBillAmountDisplay() {
+    document.getElementById('bill-amount').textContent = `$${billAmount}`;
+}
+
+function payBill() {
+    if (gameState.money >= billAmount) {
+        gameState.money -= billAmount;
+        showMessage(`Paid bills: $${billAmount}`, 'info');
+        billAmount = Math.min(1000, billAmount + 50); // Cap at 1000
+    } else {
+        // Not enough money: take all remaining money and apply late penalty
+        showMessage(`Couldn't pay full bills! Late payment penalty applied. (10%)`, 'error');
+        gameState.money = 0;
+        billAmount = Math.min(1000, Math.ceil(billAmount * 1.1)); // Increase by 10%, cap at 1000
+    }
+    updateDisplay();
+}
+
 function takeFairRisk() {
     if (gameState.gameEnded) return;
 
     const riskCost = 500;
     if (gameState.money < riskCost) {
-        showMessage('Not enough money to take this risk! You need $500.', 'error');
+        showMessage('Not enough money! You need $500.', 'error');
         return;
     }
 
@@ -236,7 +290,7 @@ function takeFairRisk() {
         gameState.money += payout;
         showMessage(`Success! You earned $${payout} from a calculated risk.`, 'success');
     } else {
-        showMessage('The risk didn\'t pay off. You lost your $500 stake.', 'error');
+        showMessage('It didn\'t pay off. You lost your $500 stake.', 'error');
     }
     updateDisplay();
 }
@@ -246,7 +300,7 @@ function takeUnwiseRisk() {
 
     const riskCost = 1000;
     if (gameState.money < riskCost) {
-        showMessage('Not enough money to take this risk! You need $1000.', 'error');
+        showMessage('Not enough money! You need $1000.', 'error');
         return;
     }
 
@@ -329,10 +383,10 @@ function checkUnwiseRiskAvailability() {
     const hasAllNeeds = needsCards.every(card => card.owned && !card.lost);
     unwiseRiskBtn.disabled = !hasAllNeeds;
     
-    if (!hasAllNeeds && !unwiseRiskBtn.disabled) {
-        unwiseRiskBtn.title = "Secure all your needs first!";
-    } else {
-        unwiseRiskBtn.title = "";
+    let showOnce = false;
+    if (hasAllNeeds && !showOnce) {
+        showMessage('You unlocked new opportunities!', 'success');
+        showOnce = true;
     }
 }
 
@@ -355,43 +409,6 @@ function buyCard(cardId, isNeed) {
 
     updateDisplay();
     showMessage(`You bought: ${card.name}`, 'success');
-}
-
-function startBillTimer() {
-    billTimeLeft = billTime;
-    updateBillTimerDisplay();
-
-    if (billInterval) clearInterval(billInterval);
-    billInterval = setInterval(() => {
-        billTimeLeft--;
-        updateBillTimerDisplay();
-
-        if (billTimeLeft <= 0) {
-            payBill();
-            billTimeLeft = billTime;
-            updateBillTimerDisplay();
-        }
-    }, 1000);
-}
-
-function updateBillTimerDisplay() {
-    const timerElement = document.getElementById('bill-timer');
-    timerElement.textContent = `${billTimeLeft}`;
-    document.getElementById('bill-amount').textContent = `$${billAmount}`;
-}
-
-function payBill() {
-    if (gameState.money >= billAmount) {
-        gameState.money -= billAmount;
-        showMessage(`Paid bills: $${billAmount}`, 'info');
-        //billAmount = Math.min(1000, billAmount + 50); // Cap at USD 1000
-    } else {
-        // Not enough money: take all remaining money and apply late penalty
-        showMessage(`Couldn't pay full bills! Late payment penalty applied. (10%)`, 'error');
-        gameState.money = 0;
-        billAmount = Math.min(1000, Math.ceil(billAmount * 1.1)); // Increase by 10%, cap at 1000
-    }
-    updateDisplay();
 }
 
 function checkGameOver() {
@@ -465,11 +482,13 @@ function restartGame() {
     if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
     waitBeforeShowingRisks = setTimeout(() => {
         document.getElementById('risks-section').classList.remove('hidden');
-        showMessage('Risk options are now available. Be careful!', 'warning');
+        unwiseRiskBtn.disabled = true;
     }, risksWaitingTime);
     
     updateDisplay();
+
     showMessage('Welcome back! Start by securing your essential needs through steady work.', 'info');
+    checkUnwiseRiskAvailability().showOnce = false;
 }
 
 // Start the game when page loads
