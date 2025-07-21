@@ -162,8 +162,11 @@ function showMessage(text, type) {
     messageDiv.className = `message ${type}`;
     messageDiv.textContent = text;
     
-    // Add to message area
+    // Add to message area with fade-in effect
+    messageDiv.style.opacity = 0;
     messageArea.prepend(messageDiv);
+
+    gsap.to(messageDiv, {opacity: 1, duration: 0.5, ease: "power1.out"});
     
     // Remove old messages if too many
     while (messageArea.children.length > 3) {
@@ -208,6 +211,7 @@ function updateBillingProgress() {
 
 function work() {
     if (gameState.isWorking) return; // Prevent spamming
+    animateButton(document.getElementById('work-button'));
     gameState.isWorking = true;
     gameState.workProgress = 0;
     updateWorkProgress();
@@ -279,6 +283,9 @@ function takeFairRisk() {
     // Deduct the cost upfront
     gameState.money -= riskCost;
 
+    // Animate the button
+    animateButton(document.getElementById('fair-risk'));
+
     // Disable both risk buttons temporarily
     fairRiskBtn.disabled = true;
     unwiseRiskBtn.disabled = true;
@@ -313,6 +320,9 @@ function takeUnwiseRisk() {
     // Deduct the cost upfront
     gameState.money -= riskCost;
     gameState.totalUnwiseRisks++;
+
+    // Animate the button
+    animateButton(document.getElementById('unwise-risk'));
 
     // Disable both risk buttons temporarily
     unwiseRiskBtn.disabled = true;
@@ -492,6 +502,14 @@ function restartGame() {
     document.getElementById('message-area').innerHTML = '';
     showMessage('Welcome back! Start by securing your essential needs through steady work.', 'info');
     checkUnwiseRiskAvailability().showOnce = false;
+}
+
+/* Animations */
+function animateButton(workButton) {
+    gsap.fromTo(workButton,
+        { scale: 0.8 },
+        { scale: 1, duration: 0.5, ease: "back.out(1.7)" }
+    );
 }
 
 // Start the game when page loads
