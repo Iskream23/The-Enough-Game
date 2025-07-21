@@ -222,7 +222,7 @@ function work() {
         gameState.isWorking = false;
         updateWorkProgress();
         updateDisplay();
-    }, 2000);
+    }, 2500);
 }
 
 function startBillTimer() {
