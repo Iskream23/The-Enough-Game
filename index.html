@@ -8,10 +8,6 @@
 </head>
 <body>
     <div class="game-container">
-        <div class="header">
-            <h1>The Enough Game</h1>
-        </div>
-
         <div id="game-area">
             <div id="message-area"></div>
             <div class="game-stats">
@@ -38,17 +34,19 @@
                 </div>
             </div>
 
-            <div class="income-section">
-                <button class="income-button" id="work-button">Work ($100)</button>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="work-progress"></div>
+            <div class="action-buttons">
+                <div class="income-section">
+                    <button class="income-button" id="work-button">Work ($100)</button>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="work-progress"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="risks-section hidden" id="risks-section">
-                <h3>Invest your money?</h3>
-                <button class="risk-button fair" id="fair-risk">💵<br>($500)</button>
-                <button class="risk-button" id="unwise-risk">💵💵💵<br>($1000)</button>
+                <div class="risks-section" id="risks-section">
+                    <h3>Invest your money?</h3>
+                    <button class="risk-button fair" id="fair-risk">💵<br>($500)</button>
+                    <button class="risk-button" id="unwise-risk">💵💵💵<br>($1000)</button>
+                </div>
             </div>
 
             <div class="cards-section">

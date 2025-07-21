@@ -38,6 +38,14 @@ body {
     flex-wrap: wrap;
 }
 
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
 .stat-card {
     background: #f8f9fa;
     padding: 20px;

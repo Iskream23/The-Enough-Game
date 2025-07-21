@@ -54,16 +54,14 @@ function initGame() {
     attachEventListeners();
 
     startBillTimer();
-    
+    disableRiskButtons();
+
     showMessage('Welcome! Start by securing your essential needs.', 'info');
 
-    // Wait before showing risks section
+    // Wait before enabling fair risk button
     if (waitBeforeShowingRisks) clearTimeout(waitBeforeShowingRisks);
     waitBeforeShowingRisks = setTimeout(() => {
-        // Show the risks section
-        document.getElementById('risks-section').classList.remove('hidden');
-        // Disable the unwise risk button initially
-        unwiseRiskBtn.disabled = true;
+        fairRiskBtn.disabled = false;
     }, risksWaitingTime);
 }
 
@@ -183,6 +181,11 @@ function showMessage(text, type) {
             }, 500);
         }
     }, 5000);*/
+}
+
+function disableRiskButtons() {
+    fairRiskBtn.disabled = true;
+    unwiseRiskBtn.disabled = true;
 }
 
 function updateWorkProgress() {
