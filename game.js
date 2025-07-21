@@ -1,6 +1,7 @@
 // Game state variables
 let gameState = {
     money: 0,
+    billAmount: 0,
     isWorking: false,
     workProgress: 0,
     billingProgress: 0,
@@ -43,10 +44,11 @@ const unwiseRiskBtn = document.getElementById('unwise-risk');
 // Billing variables
 let billInterval;
 let billTime = 120; // seconds
-let billAmount = 500;  // starting bill amount
 
 // Initialize the game
 function initGame() {
+    gameState.billAmount = 500; // Initial bill amount
+
     updateDisplay();
     attachEventListeners();
 
@@ -244,19 +246,19 @@ function startBillTimer() {
 }
 
 function updateBillAmountDisplay() {
-    document.getElementById('bill-amount').textContent = `$${billAmount}`;
+    document.getElementById('bill-amount').textContent = `$${gameState.billAmount}`;
 }
 
 function payBill() {
-    if (gameState.money >= billAmount) {
-        gameState.money -= billAmount;
-        showMessage(`Paid bills: $${billAmount}`, 'info');
-        billAmount = Math.min(1000, billAmount + 50); // Cap at 1000
+    if (gameState.money >= gameState.billAmount) {
+        gameState.money -= gameState.billAmount;
+        showMessage(`Paid bills: $${gameState.billAmount}`, 'info');
+        gameState.billAmount = Math.min(1000, gameState.billAmount + 50); // Cap at 1000
     } else {
         // Not enough money: take all remaining money and apply late penalty
         showMessage(`Couldn't pay full bills! Late payment penalty applied. (10%)`, 'error');
         gameState.money = 0;
-        billAmount = Math.min(1000, Math.ceil(billAmount * 1.1)); // Increase by 10%, cap at 1000
+        gameState.billAmount = Math.min(1000, Math.ceil(gameState.billAmount * 1.1)); // Increase by 10%, cap at 1000
     }
     updateDisplay();
 }
@@ -444,8 +446,10 @@ function endGame() {
 function restartGame() {
     gameState = {
         money: 0,
+        billAmount: 500, // Reset initial bill amount
         isWorking: false,
         workProgress: 0,
+        billingProgress: 0,
         gameEnded: false,
         unwiseRiskSuccesses: 0,
         totalUnwiseRisks: 0,
