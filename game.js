@@ -42,8 +42,9 @@ const fairRiskBtn = document.getElementById('fair-risk');
 const unwiseRiskBtn = document.getElementById('unwise-risk');
 
 // Billing variables
-let billInterval;
 let billTime = 120; // seconds
+let billTimeLeft = 0;
+let billInterval = null;
 
 // Initialize the game
 function initGame() {
@@ -192,7 +193,7 @@ function updateWorkProgress() {
 function updateBillingProgress() {
     // Calculate billing progress as percentage of billTimeLeft
     if (typeof billTimeLeft !== 'undefined' && billTime > 0) {
-        gameState.billingProgress = Math.round((billTimeLeft / billTime) * 100);
+        gameState.billingProgress = Math.round(Math.max(0, (billTimeLeft / billTime) * 100));
     } else {
         gameState.billingProgress = 0;
     }
@@ -384,12 +385,6 @@ function checkUnwiseRiskAvailability() {
     // Only enable unwise risk if player has all needs cards
     const hasAllNeeds = needsCards.every(card => card.owned && !card.lost);
     unwiseRiskBtn.disabled = !hasAllNeeds;
-    
-    let showOnce = false;
-    if (hasAllNeeds && !showOnce) {
-        showMessage('You unlocked new opportunities!', 'success');
-        showOnce = true;
-    }
 }
 
 function buyCard(cardId, isNeed) {
@@ -424,23 +419,23 @@ function checkGameOver() {
         
         // Update game over message
         const gameOverMsg = document.querySelector('#game-over h2');
-        gameOverMsg.textContent = 'Game Over - You Lost What You Needed';
+        gameOverMsg.textContent = 'Game Over';
         
         const gameOverDetails = document.querySelector('#game-over p');
-        gameOverDetails.textContent = 'You risked what you had and needed for what you didn\'t have and didn\'t need. The lesson: never gamble with necessities.';
+        gameOverDetails.textContent = 'Evaluate rewards and consequences before you leap.';
     }
 }
 
 function endGame() {
-    // Show first 3 wants always, then reveal others as previous ones are bought
-    let visibleCount = 3;
-    const ownedCount = wantsCards.filter(card => card.owned).length;
-    visibleCount = Math.min(visibleCount + ownedCount, wantsCards.length);
-    
-    wantsCards.slice(0, visibleCount).forEach(card => {
-        const cardElement = createCardElement(card, false);
-        container.appendChild(cardElement);
-    });
+    document.getElementById('game-area').classList.add('hidden');
+    document.getElementById('game-over').classList.remove('hidden');
+        
+    // Update winning message
+    const gameOverMsg = document.querySelector('#game-over h2');
+    gameOverMsg.textContent = 'Congratulations!';
+        
+    const gameOverDetails = document.querySelector('#game-over p');
+    gameOverDetails.textContent = 'You ended on your terms. That\’s a win.';
 }
 
 function restartGame() {
@@ -491,6 +486,7 @@ function restartGame() {
     
     updateDisplay();
 
+    document.getElementById('message-area').innerHTML = '';
     showMessage('Welcome back! Start by securing your essential needs through steady work.', 'info');
     checkUnwiseRiskAvailability().showOnce = false;
 }
