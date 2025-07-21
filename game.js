@@ -298,7 +298,7 @@ function takeFairRisk() {
 
     const chance = Math.random();
 
-    if (chance < 0.6) {
+    if (chance < 0.7) {
         const payout = 1500; // 3x return
         gameState.money += payout;
         showMessage(`Success! You earned $${payout} from a calculated risk.`, 'success');
@@ -484,7 +484,6 @@ function restartGame() {
     // Show game area, hide game over
     document.getElementById('game-area').classList.remove('hidden');
     document.getElementById('game-over').classList.add('hidden');
-    document.getElementById('risks-section').classList.add('hidden');
 
     // Reset risk buttons
     fairRiskBtn.disabled = false;
