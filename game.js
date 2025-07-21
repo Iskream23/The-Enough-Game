@@ -162,11 +162,11 @@ function showMessage(text, type) {
     messageDiv.textContent = text;
     
     // Add to message area
-    messageArea.appendChild(messageDiv);
+    messageArea.prepend(messageDiv);
     
     // Remove old messages if too many
     while (messageArea.children.length > 3) {
-        messageArea.removeChild(messageArea.firstChild);
+        messageArea.removeChild(messageArea.lastChild);
     }
     
     // Auto-hide message after 5 seconds
